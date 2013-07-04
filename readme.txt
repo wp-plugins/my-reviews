@@ -20,7 +20,7 @@ Add, edit, and delete reviews through a stylish user interface. The plugin creat
 * Featured and latest reviews widget
 * Review archive
 * Single review view
-* Optional: sync reviews from GuestRetain.com
+* Optional: sync reviews from [GuestRetain](http://guestretain.com)
 
 
 == Installation ==
