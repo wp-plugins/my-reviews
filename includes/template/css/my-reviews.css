@@ -1,0 +1,40 @@
+/**
+ * Latest Reviews Widget
+ */
+.widget_mr_latest_reviews .mr-latest-reviews-list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.widget_mr_latest_reviews .mr-latest-reviews-list li {
+	margin-bottom: 1em;
+}
+
+/**
+ * Featured Reviews Widget
+ */
+.widget_mr_featured_reviews .mr-featured-reviews-list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.widget_mr_featured_reviews .mr-featured-reviews-list li {
+	margin-bottom: 1em;
+}
+
+.widget_mr_featured_reviews .reviewer a,
+.widget_mr_latest_reviews .reviewer a {
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.widget_mr_featured_reviews .date,
+.widget_mr_latest_reviews .date {
+	color: #9f9f9f;
+}
+
+.mr_review blockquote {
+	padding: 1.714285714rem;
+}
