@@ -21,6 +21,71 @@ class MR_CPTS {
 		add_action( 'manage_mr_review_posts_custom_column' , array( $this, 'action_custom_columns' ), 10, 2 );
 		add_filter( 'enter_title_here', array( $this, 'filter_enter_title_here' ), 10, 2 );
 		add_action( 'admin_print_footer_scripts', array( $this, 'action_admin_print_footer_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_styles' ) );
+		add_action( 'init', array( $this, 'action_register_image_sizes' ) );
+		add_filter( 'post_thumbnail_html', array( $this, 'filter_post_thumbnail_html' ), 10, 5 );
+	}
+
+	/**
+	 * Create image sizes
+	 *
+	 * @uses add_image_size, apply_filters
+	 * @since 0.2
+	 * @return void
+	 */
+	public function action_register_image_sizes() {
+
+		$image_size_mappings = array(
+			'mr-widget-thumb' => array( 'width' => 45, 'height' => 100, 'crop' => false ),
+		);
+
+		$image_size_mappings = apply_filters( 'mr_image_sizes', $image_size_mappings );
+
+		foreach ( $image_size_mappings as $size_name => $size_array ) {
+			add_image_size( $size_name, $size_array['width'], $size_array['height'], $size_array['crop'] );
+		}
+	}
+
+	/**
+	 * Setup admin scripts
+	 *
+	 * @param string $hook
+	 * @since 0.2
+	 * @uses wp_enqueue_script, wp_localize_script, wp_create_nonce, get_post_type, get_post_meta
+	 * @return void
+	 */
+	public function action_admin_enqueue_scripts( $hook ) {
+		if ( ( 'post.php' != $hook || 'post-new.php' != $hook ) && 'mr_review' == get_post_type() ) {
+			global $post;
+
+			wp_enqueue_script( 'mr-admin', plugins_url( '/js/admin.js', dirname( __FILE__ ) ), array( 'jquery' ), '1.0', true );
+		
+			$thumbnail_id = get_post_meta( $post->ID, '_thumbnail_id', true );
+			if ( empty( $thumbnail_id ) )
+				$thumbnail_id = 0;
+
+			$local_array = array(
+				'has_gravatar_nonce' => wp_create_nonce( 'has_gravatar_nonce' ),
+				'set_thumbnail_nonce' => wp_create_nonce( 'set_post_thumbnail-' . $post->ID ),
+				'thumbnail_id' => (int) $thumbnail_id,
+			);
+			wp_localize_script( 'mr-admin', 'mr_data', $local_array );
+		}
+	}
+
+	/**
+	 * Setup admin styles
+	 *
+	 * @param string $hook
+	 * @since 0.2
+	 * @uses wp_enqueue_style, get_post_type, plugins_url
+	 * @return void
+	 */
+	public function action_admin_enqueue_styles( $hook ) {
+		if ( ( 'post.php' != $hook || 'post-new.php' != $hook ) && 'mr_review' == get_post_type() ) {
+			wp_enqueue_style( 'mr-admin', plugins_url( '/css/admin.css', dirname( __FILE__ ) ) );
+		}
 	}
 
 	/**
@@ -97,7 +162,7 @@ class MR_CPTS {
 			'register_meta_box_cb' => array( $this, 'add_metaboxes' ),
 			'menu_position' => null,
 			'menu_icon' => plugins_url( 'img/menu-icon.png' , dirname( __FILE__ ) ),
-			'supports' => array( 'title', 'editor', 'excerpt' )
+			'supports' => array( 'title', 'editor', 'excerpt', 'thumbnail' )
 		); 
 
 		register_post_type( 'mr_review', $args );
@@ -108,7 +173,7 @@ class MR_CPTS {
 	 *
 	 * @param int $post_id
 	 * @since 0.1
-	 * @uses current_user_can, get_post_type, wp_verify_nonce, update_post_meta, deleta_post_meta
+	 * @uses current_user_can, get_post_type, wp_verify_nonce, update_post_meta, deleta_post_meta, esc_url_raw
 	 * @return void
 	 */
 	public function action_save_post( $post_id ) {
@@ -124,7 +189,20 @@ class MR_CPTS {
 		}
 
 		if ( ! empty( $_POST['mr_review_details'] ) && wp_verify_nonce( $_POST['mr_review_details'], 'mr_review_details_action' ) ) {
+			
+			$current_email = get_post_meta( $post_id, 'mr_email', true );
 
+			if ( ! empty( $_POST['mr_email'] ) ) {
+				update_post_meta( $post_id, 'mr_email', sanitize_text_field( $_POST['mr_email'] ) );
+			} else {
+				delete_post_meta( $post_id, 'mr_email' );
+			}
+
+			if ( ! empty( $_POST['mr_use_gravatar'] ) ) {
+				update_post_meta( $post_id, 'mr_use_gravatar', esc_url_raw( $_POST['mr_use_gravatar'] ) );
+			} else {
+				delete_post_meta( $post_id, 'mr_use_gravatar' );
+			}
 		}
 		
 	}
@@ -135,6 +213,7 @@ class MR_CPTS {
 	 * @param string $column
 	 * @param int $post_id
 	 * @uses get_post_meta, esc_html
+	 * @since 0.1
 	 * @return void
 	 */
 	public function action_custom_columns( $column, $post_id ) {
@@ -148,6 +227,7 @@ class MR_CPTS {
 	 * Add new columns
 	 *
 	 * @param array $columns
+	 * @since 0.1
 	 * @return array
 	 */
 	public function filter_columns( $columns ) {
@@ -180,7 +260,7 @@ class MR_CPTS {
 	 *
 	 * @param object $post
 	 * @since 0.1
-	 * @uses wp_nonce_field, checked
+	 * @uses wp_nonce_field, checked, get_post_meta
 	 * @return void
 	 */
 	public function meta_box_additional_options( $post ) {
@@ -195,16 +275,66 @@ class MR_CPTS {
 	}
 
 	/**
+	 * Filter post thumbnails
+	 *
+	 * @param string $html
+	 * @param int $post_id
+	 * @param int $post_thumbnail_id
+	 * @param string $size
+	 * @param array $attr
+	 * @since 0.2
+	 * @uses is_admin, get_post_type, get_post_meta, esc_url, apply_filters
+	 * @return string
+	 */
+	public function filter_post_thumbnail_html( $html, $post_id, $post_thumbnail_id, $size, $attr ) {
+		if ( is_admin() || 'mr_review' != get_post_type( $post_id ) ) {
+			return $html;
+		}
+
+		if ( ! empty( $post_thumbnail_id ) ) {
+			return $html;
+		}
+
+		global $_wp_additional_image_sizes;
+
+		$gravatar = get_post_meta( $post_id, 'mr_use_gravatar', true );
+		if ( ! empty( $gravatar ) ) {
+			if ( ! empty( $_wp_additional_image_sizes[$size] ) && ! empty( $_wp_additional_image_sizes[$size]['width'] ) ) {
+				$width = $_wp_additional_image_sizes[$size]['width'];
+				if ( apply_filters( 'mr_max_review_image_width', 200, $post_id ) < $width )
+					$width = apply_filters( 'mr_max_review_image_width', 200, $post_id );
+				return '<a href="' . esc_url( $gravatar ) . '?s=' . (int) $width . '"><img width="' . (int) $width . '" height="' . (int) $width . '" src="' . esc_url( $gravatar ) . '?s=' . (int) $width . '" /></a>';
+			}
+		}
+
+		return $html;
+	}
+
+	/**
 	* Output review details meta box
 	*
 	* @param object $post
 	* @since 0.1
-	* @uses wp_nonce_field, esc_attr
+	* @uses wp_nonce_field, esc_attr, get_post_meta
 	* @return void
 	*/
 	public function meta_box_review_details( $post ) {
 		wp_nonce_field( 'mr_review_details_action', 'mr_review_details' );
 
+		$email = get_post_meta( $post->ID, 'mr_email', true );
+		$use_gravatar = get_post_meta( $post->ID, 'mr_use_gravatar', true );
+	?>
+		<p>
+			<label for="mr_email"><?php _e( 'Reviewer Email:', 'my-reviews' ); ?></label> <input class="regular-text" type="text" id="mr_email" name="mr_email" value="<?php echo esc_attr( $email ); ?>" /> (This will be kept private)<br />
+			<div class="mr-has-gravatar">
+				<div class="gravatar"></div>
+				<div class="options">
+					<p><?php _e( 'My Reviews allows you to insert a featured image into each of your reviews. Featured images can be anything you want - business image, reviewer photo, etc. If a reviewers email is associated with a gravatar or "globally recoginized avatar", you can use that avatar as the featured image.', 'my-reviews' ); ?></p>
+					<input <?php if ( ! empty( $use_gravatar ) ) echo 'checked="checked"'; ?> type="checkbox" value="0" name="mr_use_gravatar" /> <?php _e( 'Use Gravatar as Featured Image', 'my-review' ); ?>
+				</div>
+			</div>
+		</p>
+	<?php
 	}
 
 	/**
@@ -252,4 +382,5 @@ class MR_CPTS {
 	}
 }
 
-MR_CPTS::init();
+global $mr_cpts;
+$mr_cpts = MR_CPTS::init();

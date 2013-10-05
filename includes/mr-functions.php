@@ -16,6 +16,20 @@ function mr_get_option() {
 }
 
 /**
+ * Check if email has a gravatar
+ *
+ * @param string $email
+ * @since 0.2
+ * @return boolean
+ */
+function mr_has_gravatar( $email ) {
+	$url = 'http://www.gravatar.com/avatar/' . md5( strtolower( trim ( $email ) ) ) . '?d=404';
+	$headers = @get_headers( $url );
+	return preg_match( '|200|', $headers[0] ) ? true : false;
+}
+
+
+/**
  * Parse MR API response and merge it with optional default arg array
  *
  * @param array $response
@@ -42,3 +56,27 @@ function mr_filter_excerpt_length( $length ) {
 	return 20;
 }
 
+/**
+ * Return timestamp for a post, uses mr_reviewed if it exists
+ *
+ * @param int $post_id
+ * @uses get_post, get_the_time, get_post_meta
+ * @return int
+ */
+function mr_get_the_timestamp( $post_id = 0 ) {
+	if ( ! $post_id ) {
+		global $post;
+	} else {
+		$post = get_post( $post_id );
+	}
+
+	if ( $post ) {
+		if ( $reviewed_time = get_post_meta( $post->ID, 'mr_reviewed', true ) ) {
+			return (int) $reviewed_time;
+		}
+
+		return get_the_time( 'U', $post_id );
+	}
+
+	return 0;
+}

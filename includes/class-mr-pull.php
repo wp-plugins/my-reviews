@@ -8,7 +8,7 @@ class MR_Pull {
 
 	private static $_instance;
 
-	const GR_REVIEWS_ENDPOINT = 'https://test-guestretain.herokuapp.com/api/reviews/?format=json';
+	const WR_REVIEWS_ENDPOINT = 'https://app.wavereview.com/api/reviews/?format=json';
 
 	/**
 	 * Setup actions and filters. This is a singleton.
@@ -36,7 +36,7 @@ class MR_Pull {
 		$option = mr_get_option();
 
 		$schedules['my_reviews'] = array(
-			'interval' => ( MINUTE_IN_SECONDS * $option['sync_window'] ),
+			'interval' => ( 60 * $option['sync_window'] ),
 			'display' => __( 'Custom My Reviews Interval', 'my-reviews' )
 		);
 		return $schedules;
@@ -119,6 +119,9 @@ class MR_Pull {
 
 				if ( ! empty( $review->created ) )
 					update_post_meta( $post_id, 'mr_reviewed', sanitize_text_field( strtotime( $review->created ) ) );
+
+				if ( ! empty( $review->email ) )
+					update_post_meta( $post_id, 'mr_email', sanitize_text_field( $review->email ) );
 			}
 		}
 	}
@@ -151,7 +154,7 @@ class MR_Pull {
 		if ( empty( $option['gr_api_key'] ) )
 			return false;
 
-		$response = wp_remote_get( MR_Pull::GR_REVIEWS_ENDPOINT, array(
+		$response = wp_remote_get( MR_Pull::WR_REVIEWS_ENDPOINT, array(
 			'method' => 'GET',
 			'headers' => array( 'Authorization' => 'Token ' . esc_attr( $option['gr_api_key'] ) ),
 			'timeout' => 30,
@@ -172,7 +175,7 @@ class MR_Pull {
 		if ( empty( $api_key ) )
 			return false;
 
-		$response = wp_remote_get( MR_Pull::GR_REVIEWS_ENDPOINT, array(
+		$response = wp_remote_get( MR_Pull::WR_REVIEWS_ENDPOINT, array(
 			'method' => 'GET',
 			'headers' => array( 'Authorization' => 'Token ' . esc_attr( $api_key ) ),
 			'timeout' => 10,

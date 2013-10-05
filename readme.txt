@@ -1,14 +1,14 @@
 === My Reviews ===
 Contributors: gswardman
-Donate link: http://guestretain.com
-Tags: reviews, client reviews, product reviews, guest retain, guest retain
+Donate link: http://www.wavereview.com
+Tags: reviews, client reviews, product reviews, wavereview, wave review
 Requires at least: 3.4
-Tested up to: 3.5.2
-Stable tag: 0.1
+Tested up to: 3.6.1
+Stable tag: 0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Add, edit, and delete reviews. Show reviews to your readers using a single review view, archive view, and using widgets. Feature specific reviews. Optionally connect the plugin to your GuestRetain account to automatically sync reviews.
+Add, edit, and delete reviews. Show reviews to your readers using a single review view, archive view, and using widgets. Feature specific reviews. Optionally connect the plugin to your WaveReview account to automatically sync reviews.
 
 == Description ==
 
@@ -20,7 +20,7 @@ Add, edit, and delete reviews through a stylish user interface. The plugin creat
 * Featured and latest reviews widget
 * Review archive
 * Single review view
-* Optional: sync reviews from [GuestRetain](http://guestretain.com)
+* Optional: automatically sync reviews from WaveReview.com
 
 
 == Installation ==
@@ -30,6 +30,9 @@ Add, edit, and delete reviews through a stylish user interface. The plugin creat
 1. Done!
 
 == Changelog ==
+
+= 0.2 =
+Plugin release
 
 = 0.1 =
 Plugin release

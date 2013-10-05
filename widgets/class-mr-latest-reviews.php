@@ -43,6 +43,7 @@ class MR_Latest_Reviews extends WP_Widget {
 		$instance = array();
 		$instance['title'] = ( ! empty( $new_instance['title'] ) ) ? esc_attr( $new_instance['title'] ) : '';
 		$instance['num_reviews'] = ( ! empty( $new_instance['num_reviews'] ) ) ? absint( $new_instance['num_reviews'] ) : 0;
+		$instance['show_review_image'] = ( ! empty( $new_instance['show_review_image'] ) ) ? 1 : 0;
 
 		return $instance;
 	}
@@ -81,7 +82,8 @@ class MR_Latest_Reviews extends WP_Widget {
 
 			$defaults = array(
 				'title' => '',
-				'num_reviews' => 5
+				'num_reviews' => 5,
+				'show_review_image' => 0,
 			);
 
 			$instance = wp_parse_args( $instance, $defaults );
@@ -107,8 +109,19 @@ class MR_Latest_Reviews extends WP_Widget {
 			echo '<ul class="mr-latest-reviews-list">';
 			while ( $reviews->have_posts() ) {
 				$reviews->the_post();
+				$has_image = false;
+				$thumbnail = get_the_post_thumbnail( get_the_ID(), 'mr-widget-thumb' );
+				if ( $instance['show_review_image'] && ! empty( $thumbnail ) )
+					$has_image = true;
 			?>
-				<li>
+				<li <?php if ( $has_image ) : ?>class="has-image"<?php endif; ?>>
+
+					<?php if ( $has_image ) : ?>
+						<div class="review-image">
+							<?php echo $thumbnail; ?>
+						</div>
+					<?php endif; ?>
+
 					<div class="reviewer">
 						<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
 					</div>
@@ -149,7 +162,8 @@ class MR_Latest_Reviews extends WP_Widget {
 
 		$defaults = array(
 			'title' => '',
-			'num_reviews' => 5
+			'num_reviews' => 5,
+			'show_review_image' => 0,
 		);
 
 		$instance = wp_parse_args( $instance, $defaults );
@@ -162,6 +176,10 @@ class MR_Latest_Reviews extends WP_Widget {
 		<p>
 			<label for="<?php echo $this->get_field_id( 'num_reviews' ); ?>">Number of Reviews to Show:</label> 
 			<input class="widefat" id="<?php echo $this->get_field_id( 'num_reviews' ); ?>" name="<?php echo $this->get_field_name( 'num_reviews' ); ?>" type="text" value="<?php echo absint( $instance['num_reviews'] ); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'show_review_image' ); ?>">Show Review Featured Image:</label> 
+			<input id="<?php echo $this->get_field_id( 'show_review_image' ); ?>" name="<?php echo $this->get_field_name( 'show_review_image' ); ?>" type="checkbox" value="1" <?php checked( $instance['show_review_image'], 1 ); ?> />
 		</p>
 	<?php 
 	}

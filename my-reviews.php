@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: My Reviews
-Plugin URI: http://www.guestretain.com
-Description: Create and display reviews in WordPress. Syncs with GuestRetain
+Plugin URI: http://www.wavereview.com
+Description: Create and display reviews in WordPress. Syncs with WaveReview
 Author: Gem
-Version: 0.1
-Author URI: http://www.guestretain.com
+Version: 0.2
+Author URI: http://www.wavereview.com
 */
 
 /**
@@ -22,6 +22,7 @@ $option_defaults = array( 'gr_api_key' => '', 'sync_window' => 60, 'sync_review_
 require_once( 'includes/mr-functions.php' );
 require_once( 'includes/class-mr-cpts.php' );
 require_once( 'includes/class-mr-pull.php' );
+require_once( 'includes/class-mr-ajax.php' );
 
 /**
  * Include widgets
@@ -46,8 +47,8 @@ class MR_My_Reviews {
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'action_enqueue_styles' ) );
 		add_filter( 'plugin_action_links_wp-my-reviews/wp-my-reviews.php', array( $this, 'filter_plugin_action_links'), 10, 1 );
-		add_filter( 'the_title', array( $this, 'filter_title'), 10, 2 );
 		add_filter( 'the_content', array( $this, 'filter_content' ), 10, 2 );
+		add_action( 'plugins_loaded', array( $this, 'action_plugins_loaded' ) );
 	}
 
 	/**
@@ -56,7 +57,7 @@ class MR_My_Reviews {
 	 * @param string $content
 	 * @param int $post_id
 	 * @since 0.1
-	 * @uses apply_filters, is_single, get_post_type, get_post_meta, get_the_ID, esc_html, is_archive
+	 * @uses apply_filters, is_single, get_post_type, get_post_meta, get_the_ID, esc_html, is_archive, esc_html
 	 * @return string
 	 */
 	public function filter_content( $content, $post_id = 0 ) {
@@ -67,44 +68,34 @@ class MR_My_Reviews {
 			return $content;
 
 		if ( apply_filters( 'mr_blockquote_content', true ) )
-			$content = '<blockquote>' . $content . '</blockquote>';
+			$content = '<blockquote class="mr-review-content">' . $content . '</blockquote>';
 
 		if ( apply_filters( 'mr_add_date_content', true ) && is_single() ) {
-			if ( $reviewed = get_post_meta( get_the_ID(), 'mr_checkin_date', true ) ) {
-				$dates = '<div class="mr-date">';
-				$dates .= '<em>' . __( 'Reviewed on', 'my-reviews' ) . ' ' . date( 'M j - Y', $reviewed ) . '</em>';
-				$dates .= '</div>';
-				$content = apply_filters( 'mr_date_html', $dates, $reviewed ) . $content;
-			}
+			$dates = '<div class="mr-review-date">';
+			$option = mr_get_option();
+			$reviewed = mr_get_the_timestamp( $post_id );
+
+			if ( ! empty( $option['service_name'] ) )
+				$dates .= sprintf( __( 'Reviewed <em>%s</em> on %s', 'my-reviews' ), esc_html( $option['service_name'] ), esc_html( date( 'M j - Y', $reviewed ) ) );
+			else
+				$dates .= sprintf( __( 'Reviewed on %s', 'my-reviews' ), esc_html( date( 'M j - Y', $reviewed ) ) );
+			
+			$dates .= '</div>';
+			$content = $content . apply_filters( 'mr_date_html', $dates, $reviewed );
 		}
 
 		return $content;
 	}
 
 	/**
-	 * Filter single review title
+	 * Localize plugin
 	 *
-	 * @param string $title
-	 * @param int $post_id
-	 * @uses is_single, get_post_type, __, apply_filters, esc_html, is_archive, is_admin
 	 * @since 0.1
-	 * @return string
+	 * @uses load_plugin_textdomain
+	 * @return void
 	 */
-	public function filter_title( $title, $post_id = 0 ) {
-		if ( ( ! is_single() && ! is_archive() ) || is_admin() )
-			return $title;
-
-		if ( 'mr_review' != get_post_type( $post_id ) )
-			return $title;
-
-		$option = mr_get_option();
-
-		$default_title = $title;
-		if ( ! empty( $option['service_name'] ) ) {
-			$default_title = $title . __( ' reviewed ', 'my-reviews' ) . esc_html( $option['service_name'] );
-		}
-
-		return apply_filters( 'mr_the_title', $default_title, $title, $option['service_name'] );
+	public function action_plugins_loaded() {
+		load_plugin_textdomain( 'my-reviews', false, basename( dirname( __FILE__ ) ) . '/languages' );
 	}
 
 	/**
@@ -275,7 +266,7 @@ class MR_My_Reviews {
 					</tbody>
 				</table>
 
-				<h3><?php _e( 'Guest Retain Settings', 'my-reviews' ); ?></h3>
+				<h3><?php _e( 'WaveReview Settings', 'my-reviews' ); ?></h3>
 				<table class="form-table">
 					<tbody>
 						<tr>
@@ -325,6 +316,20 @@ class MR_My_Reviews {
 							<th scope="row"><label for="mr_manual_sync"><?php _e( 'Manual Review Sync:', 'my-reviews' ); ?></label></th>
 							<td>
 								<input class="button" type="submit" name="mr_manual_sync" id="mr_manual_sync" value="<?php _e( 'Do Sync', 'my-reviews' ); ?>" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<?php submit_button(); ?>
+			</form>
+		</div>
+	<?php
+	}
+
+}
+global $mr_my_reviews;
+$mr_my_reviews = MR_My_Reviews::init(); />
 							</td>
 						</tr>
 					</tbody>

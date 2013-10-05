@@ -1,40 +1,58 @@
 /**
- * Latest Reviews Widget
+ * Widgets
  */
-.widget_mr_latest_reviews .mr-latest-reviews-list {
+.mr-latest-reviews-list,
+.mr-featured-reviews-list {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
 }
 
-.widget_mr_latest_reviews .mr-latest-reviews-list li {
-	margin-bottom: 1em;
+.mr-latest-reviews-list li,
+.mr-featured-reviews-list {
+	margin: 0 0 1em 0;
 }
 
-/**
- * Featured Reviews Widget
- */
-.widget_mr_featured_reviews .mr-featured-reviews-list {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
+.mr-featured-reviews-list .review-image,
+.mr-latest-reviews-list .review-image {
+	float: left;
 }
 
-.widget_mr_featured_reviews .mr-featured-reviews-list li {
-	margin-bottom: 1em;
+.mr-featured-reviews-list li.has-image .reviewer,
+.mr-latest-reviews-list li.has-image  .reviewer {
+	margin-left: 55px;
 }
 
-.widget_mr_featured_reviews .reviewer a,
-.widget_mr_latest_reviews .reviewer a {
+.mr-featured-reviews-list .reviewer a,
+.mr-latest-reviews-list .reviewer a {
 	font-weight: bold;
 	text-decoration: none;
 }
 
-.widget_mr_featured_reviews .date,
-.widget_mr_latest_reviews .date {
+.mr-featured-reviews-list .date,
+.mr-latest-reviews-list .date {
 	color: #9f9f9f;
 }
 
-.mr_review blockquote {
+.mr-featured-reviews-list li.has-image .date,
+.mr-latest-reviews-list li.has-image .date {
+	margin-left: 55px;
+}
+
+.mr-featured-reviews-list li.has-image blockquote,
+.mr-latest-reviews-list li.has-image blockquote {
+	clear:both;
+}
+
+/**
+ * Standalone review
+ */
+
+blockquote.mr-review-content {
 	padding: 1.714285714rem;
+}
+
+.mr-review-date {
+	font-weight: bold;
+	text-align: right;
 }
