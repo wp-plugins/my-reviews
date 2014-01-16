@@ -16,6 +16,24 @@ function mr_get_option() {
 }
 
 /**
+ * Truncate a string on a word
+ *
+ * @param string $str
+ * @param int $maxlen
+ * @since 0.1
+ * @return string
+ */
+function mr_truncate_str( $str, $maxlen ) {
+    if ( strlen( $str ) <= $maxlen ) return $str;
+
+    $newstr = substr( $str, 0, $maxlen );
+    if ( substr( $newstr, -1, 1 ) != ' ' )
+        $newstr = substr( $newstr, 0, strrpos( $newstr, " " ) );
+
+    return $newstr;
+}
+
+/**
  * Check if email has a gravatar
  *
  * @param string $email

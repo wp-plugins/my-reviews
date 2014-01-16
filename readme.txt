@@ -3,8 +3,8 @@ Contributors: gswardman
 Donate link: http://www.wavereview.com
 Tags: reviews, client reviews, product reviews, wavereview, wave review
 Requires at least: 3.4
-Tested up to: 3.6.1
-Stable tag: 0.2
+Tested up to: 3.8
+Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,12 @@ Add, edit, and delete reviews through a stylish user interface. The plugin creat
 1. Done!
 
 == Changelog ==
+
+= 1.0 =
+Add review column to post table
+Rename wavereview pull file
+Add metabox for wavereview
+Bring in new fields from wavereview
 
 = 0.2 =
 Plugin release

@@ -4,7 +4,7 @@ Plugin Name: My Reviews
 Plugin URI: http://www.wavereview.com
 Description: Create and display reviews in WordPress. Syncs with WaveReview
 Author: Gem
-Version: 0.2
+Version: 1.0
 Author URI: http://www.wavereview.com
 */
 
@@ -21,7 +21,7 @@ $option_defaults = array( 'gr_api_key' => '', 'sync_window' => 60, 'sync_review_
  */
 require_once( 'includes/mr-functions.php' );
 require_once( 'includes/class-mr-cpts.php' );
-require_once( 'includes/class-mr-pull.php' );
+require_once('includes/class-mr-wavereview-pull.php');
 require_once( 'includes/class-mr-ajax.php' );
 
 /**
@@ -163,7 +163,7 @@ class MR_My_Reviews {
 
 		ob_start();
 	?>
-		<p><?php _e( 'My Reviews lets you manage reviews. You can even sync reviews from your GuestRetain account. Add, edit, delete, and feature reviews <a href="' . admin_url( 'edit.php?post_type=mr_review' ) . '">here</a>. You can show off your reviews to readers in a variety of ways:', 'my-reviews' ); ?></p>
+		<p><?php _e( 'My Reviews lets you manage reviews. You can even sync reviews from your WaveReview account. Add, edit, delete, and feature reviews <a href="' . admin_url( 'edit.php?post_type=mr_review' ) . '">here</a>. You can show off your reviews to readers in a variety of ways:', 'my-reviews' ); ?></p>
 		<ul>
 			<li><?php _e( 'Latest Reviews Widget and Featured Reviews Widget - Add these widgets to any sidebar on your site.', 'my-reviews' ); ?></li>
 			<li><?php _e( 'Review archive - <a href="' . home_url( 'reviews' ) . '">Here</a> is your review archive. Use this link to show your readers all your reviews in list format.', 'my-reviews' ); ?></li>
@@ -195,7 +195,6 @@ class MR_My_Reviews {
      * 
      * @param array $options
      * @since 0.1
-     * @uses sanitize_text_field, flush_rewrite_rules, wp_schedule_single_event
      * @return array
      */
 	public function sanitize_options( $options ) {
@@ -207,6 +206,18 @@ class MR_My_Reviews {
 			wp_schedule_single_event( ( time() - 1 ), 'mr_single_sync_reviews' );
 			return $current_options;
 		}
+
+        if ( ! empty( $_POST['mr_reset_deleted' ] ) ) {
+            delete_option( 'mr_synced_wr_reviews' );
+        }
+
+        // If new sync window, we need to reschedule the event
+        if ( $current_options['sync_window'] != $options['sync_window'] ) {
+
+            $timestamp = wp_next_scheduled( 'mr_sync_reviews' );
+
+            wp_unschedule_event( $timestamp, 'mr_sync_reviews' );
+        }
 
 		flush_rewrite_rules();
 
@@ -242,11 +253,11 @@ class MR_My_Reviews {
 	 * @return void
 	 */
 	public function screen_options() {
-		global $mr_pull;
+		global $mr_wavereview_pull;
 
 		$option = mr_get_option();
 
-		$valid_api_key = $mr_pull->valid_api_key( $option['gr_api_key'] );
+		$valid_api_key = $mr_wavereview_pull->valid_api_key( $option['gr_api_key'] );
     ?>
         <div class="wrap">
 			<h2><?php _e( 'My Reviews', 'my-reviews' ); ?></h2>
@@ -299,7 +310,7 @@ class MR_My_Reviews {
 							<th scope="row"><label for="mr_sync_window"><?php _e( 'Sync Window (minutes):', 'my-reviews' ); ?></label></th>
 							<td>
 								<input type="text" id="mr_sync_window" size="10" name="<?php echo MR_OPTION_NAME; ?>[sync_window]" value="<?php echo absint( $option['sync_window'] ); ?>" /> 
-								<?php _e( 'Commenter info will be synced from the Guest Retain server on this interval' ); ?>
+								<?php _e( 'Commenter info will be synced from the WaveReview server on this interval' ); ?>
 							</td>
 						</tr>
 						<tr>
@@ -312,26 +323,18 @@ class MR_My_Reviews {
 								<?php _e( 'Syncronized reviews can either be automatically published or set as drafts' ); ?>
 							</td>
 						</tr>
-						<tr>
-							<th scope="row"><label for="mr_manual_sync"><?php _e( 'Manual Review Sync:', 'my-reviews' ); ?></label></th>
-							<td>
-								<input class="button" type="submit" name="mr_manual_sync" id="mr_manual_sync" value="<?php _e( 'Do Sync', 'my-reviews' ); ?>" />
-							</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<?php submit_button(); ?>
-			</form>
-		</div>
-	<?php
-	}
-
-}
-global $mr_my_reviews;
-$mr_my_reviews = MR_My_Reviews::init(); />
-							</td>
-						</tr>
+                        <tr>
+                            <th scope="row"><label for="mr_manual_sync"><?php _e( 'Manual Review Sync:', 'my-reviews' ); ?></label></th>
+                            <td>
+                                <input class="button" type="submit" name="mr_manual_sync" id="mr_manual_sync" value="<?php _e( 'Do Sync', 'my-reviews' ); ?>" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="mr_reset_deleted"><?php _e( 'Reset Deleted Reviews:', 'my-reviews' ); ?></label></th>
+                            <td>
+                                <input class="button" type="submit" name="mr_reset_deleted" id="mr_reset_deleted" value="<?php _e( 'Reset Deleted Reviews', 'my-reviews' ); ?>" />
+                            </td>
+                        </tr>
 					</tbody>
 				</table>
 

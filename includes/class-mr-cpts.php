@@ -25,7 +25,40 @@ class MR_CPTS {
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_styles' ) );
 		add_action( 'init', array( $this, 'action_register_image_sizes' ) );
 		add_filter( 'post_thumbnail_html', array( $this, 'filter_post_thumbnail_html' ), 10, 5 );
+        add_action( 'add_meta_boxes', array( $this, 'action_add_meta_boxes' ) );
 	}
+
+    /**
+     *  Register meta boxes
+     *
+     * @since 1.0
+     * @return void
+     */
+    public function action_add_meta_boxes() {
+        if ( 'mr_review' == get_post_type() ) {
+            $mr_post_id = get_post_meta( get_the_ID(), 'mr_post_id', true );
+
+            if ( ! empty( $mr_post_id ) )
+                add_meta_box( 'mr_wavereview_details', __( 'WaveReview Details', 'my-reviews' ), array( $this, 'wavereview_details_meta_box' ), 'mr_review', 'side' );
+        }
+    }
+
+    /**
+     * Output WaveReview details meta box
+     *
+     * @param object $post
+     * @return void
+     */
+    public function wavereview_details_meta_box( $post ) {
+        $arrival_time = get_post_meta( $post->ID, 'mr_checkin_date', true );
+        $departure_time = get_post_meta( $post->ID, 'mr_checkout_date', true );
+        $review_time = get_post_meta( $post->ID, 'mr_reviewed', true );
+    ?>
+        <p><strong>Arrival Date:</strong> <?php echo date( 'j/n/Y g:i A', (int) $arrival_time ); ?></p>
+        <p><strong>Departure Date:</strong> <?php echo date( 'j/n/Y g:i A', (int) $departure_time ); ?></p>
+        <p><strong>Review Date:</strong> <?php echo date( 'j/n/Y g:i A', (int) $review_time ); ?></p>
+    <?php
+    }
 
 	/**
 	 * Create image sizes
@@ -113,8 +146,8 @@ class MR_CPTS {
 	 * Change title text box label
 	 *
 	 * @param string $label
+     * @param int $post
 	 * @since 0.1
-	 * @uses get_post_type
 	 * @return string
 	 */
 	public function filter_enter_title_here( $label, $post = 0 ) {
@@ -220,7 +253,9 @@ class MR_CPTS {
 		if ( 'mr_featured' == $column ) {
 			$featured = get_post_meta( $post_id, 'mr_featured', true );
 			echo ( ! empty( $featured ) ) ? __( 'Yes', 'my-reviews' ) : __( 'No', 'my-reviews' );
-		}
+		} else if ( 'mr_review' == $column ) {
+            echo mr_truncate_str( get_the_content( $post_id ), 100 );
+        }
 	}
 	
 	/**
@@ -232,6 +267,7 @@ class MR_CPTS {
 	 */
 	public function filter_columns( $columns ) {
 		$columns['mr_featured'] = __( 'Featured', 'my-reviews' );
+        $columns['mr_review'] = __( 'Review', 'my-reviews' );
 		$columns['title'] = __( 'Reviewer', 'my-reviews' );
 
 		unset($columns['author']);

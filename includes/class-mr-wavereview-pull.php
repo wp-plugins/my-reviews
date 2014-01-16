@@ -4,18 +4,17 @@
  * Pull from review servers
  */
 
-class MR_Pull {
+class MR_WaveReview_Pull {
 
 	private static $_instance;
 
-	const WR_REVIEWS_ENDPOINT = 'https://app.wavereview.com/api/reviews/?format=json';
+	const WR_REVIEWS_ENDPOINT = 'https://app.wavereview.com/api/reviews/?format=json&page_size=75';
 
 	/**
 	 * Setup actions and filters. This is a singleton.
 	 *
 	 * @since 0.1
 	 * @uses add_action, add_filter
-	 * @return MR_GuestRetain_Pull
 	 */
 	private function __construct() {
 		add_action( 'mr_sync_reviews', array( $this, 'sync_reviews' ) );
@@ -28,7 +27,6 @@ class MR_Pull {
 	 * Add custom cron schedule
 	 *
 	 * @param array $schedules
-	 * @uses __
 	 * @since 0.1
 	 * @return array
 	 */
@@ -36,7 +34,7 @@ class MR_Pull {
 		$option = mr_get_option();
 
 		$schedules['my_reviews'] = array(
-			'interval' => ( 60 * $option['sync_window'] ),
+			'interval' => ( 60 * (int) $option['sync_window'] ),
 			'display' => __( 'Custom My Reviews Interval', 'my-reviews' )
 		);
 		return $schedules;
@@ -58,11 +56,9 @@ class MR_Pull {
 	}
 
 	/**
-	 * Sync reviews
+	 * Sync reviews from WaveReview
 	 *
 	 * @since 0.1
-	 * @uses wp_insert_post, have_posts, esc_attr, sanitize_text_field, update_post_meta, update_option
-	 *		 wp_parse_args, get_option
 	 * @return void
 	 */
 	public function sync_reviews() {
@@ -73,9 +69,11 @@ class MR_Pull {
 
 		$option = mr_get_option();
 
-		unset( $reviews['detail'] );
+        $synced_reviews = get_option( 'mr_synced_wr_reviews' );
+        if ( empty( $synced_reviews ) )
+            $synced_reviews = array();
 
-		foreach ( $reviews as $review ) {
+		foreach ( $reviews['results'] as $review ) {
 
 			if ( ! is_object( $review ) )
 				continue;
@@ -85,7 +83,7 @@ class MR_Pull {
 				continue;
 
 			$postarr = array(
-				'post_status' => $option['sync_review_status'],
+				'post_status' => esc_attr( $option['sync_review_status'] ),
 				'post_type' => 'mr_review',
 				'post_content' => $review->comment, 
 			);
@@ -100,9 +98,13 @@ class MR_Pull {
 			$reviews_query = new WP_Query( $args );
 			
 			if ( $reviews_query->have_posts() ) {
-				$postarr['ID'] = $reviews_query->posts[0]->ID;
-				$postarr['post_status'] = $reviews_query->posts[0]->post_status;
-			}
+				// if the review already exists, don't sync
+                continue;
+			} else {
+                // if the review doesn't exist, make sure it wasn't deleted
+                if ( in_array( (int) $review->id, $synced_reviews ) )
+                    continue;
+            }
 
 			$postarr['post_title'] = esc_attr( $review->first_name . ' ' . $review->last_name );
 			
@@ -120,8 +122,18 @@ class MR_Pull {
 				if ( ! empty( $review->created ) )
 					update_post_meta( $post_id, 'mr_reviewed', sanitize_text_field( strtotime( $review->created ) ) );
 
-				if ( ! empty( $review->email ) )
-					update_post_meta( $post_id, 'mr_email', sanitize_text_field( $review->email ) );
+                if ( ! empty( $review->email ) )
+                    update_post_meta( $post_id, 'mr_email', sanitize_text_field( $review->email ) );
+
+                if ( ! empty( $review->vote ) )
+                    update_post_meta( $post_id, 'mr_vote', (int) $review->vote );
+
+                if ( ! empty( $review->vote_service ) )
+                    update_post_meta( $post_id, 'mr_vote_service', (int) $review->vote_service );
+
+                // Save synced review ID
+                $synced_reviews[] = (int) $review->id;
+                update_option( 'mr_synced_wr_reviews', $synced_reviews );
 			}
 		}
 	}
@@ -130,12 +142,12 @@ class MR_Pull {
 	 * Initialize class and return an instance of it
 	 *
 	 * @since 0.1
-	 * @return MR_GuestRetain_Pull
+	 * @return MR_WaveReview_Pull
 	 */
 	public function init() {
 		if ( ! isset( self::$_instance ) ) {
 
-			self::$_instance = new MR_Pull;
+			self::$_instance = new MR_WaveReview_Pull;
 		}
 
 		return self::$_instance;
@@ -154,13 +166,28 @@ class MR_Pull {
 		if ( empty( $option['gr_api_key'] ) )
 			return false;
 
-		$response = wp_remote_get( MR_Pull::WR_REVIEWS_ENDPOINT, array(
+        $page_num = (int) get_option( 'mr_wr_sync_page_num', 0 );
+
+        $url = MR_WaveReview_Pull::WR_REVIEWS_ENDPOINT;
+        if ( ! empty( $page_num ) )
+            $url .= '&page=' . $page_num;
+
+		$response = wp_remote_get( $url, array(
 			'method' => 'GET',
 			'headers' => array( 'Authorization' => 'Token ' . esc_attr( $option['gr_api_key'] ) ),
 			'timeout' => 30,
 	    ) );
+
+        $parsed_response = mr_parse_response( $response, array( 'detail' => '', 'next' => '' ) );
+
+        if ( ! empty( $parsed_response['next'] ) ) {
+            $page_num++;
+            update_option( 'mr_wr_sync_page_num', $page_num );
+        } else {
+            update_option( 'mr_wr_sync_page_num', 0 );
+        }
 	    
-	    return mr_parse_response( $response, array( 'detail' => '' ) );
+	    return $parsed_response;
 	}
 
 	/**
@@ -175,7 +202,7 @@ class MR_Pull {
 		if ( empty( $api_key ) )
 			return false;
 
-		$response = wp_remote_get( MR_Pull::WR_REVIEWS_ENDPOINT, array(
+		$response = wp_remote_get( MR_WaveReview_Pull::WR_REVIEWS_ENDPOINT, array(
 			'method' => 'GET',
 			'headers' => array( 'Authorization' => 'Token ' . esc_attr( $api_key ) ),
 			'timeout' => 10,
@@ -190,5 +217,5 @@ class MR_Pull {
 	}
 }
 
-global $mr_pull;
-$mr_pull = MR_Pull::init();
+global $mr_wavereview_pull;
+$mr_wavereview_pull = MR_WaveReview_Pull::init();
