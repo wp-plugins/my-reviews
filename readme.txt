@@ -20,7 +20,9 @@ Add, edit, and delete reviews through a stylish user interface. The plugin creat
 * Featured and latest reviews widget
 * Review archive
 * Single review view
-* Optional: automatically sync reviews from WaveReview.com
+* Optional: automatically sync reviews from [WaveReview](http://wavereview.com)
+
+_[WaveReview](http://wavereview.com) is a revolutionary new online reputation management system; it gives you the power to properly influence your customers’ decision making process, resulting in more positive reviews and less negative ones boosting your overall social review rating. Triple your online reviews in 30 days or your money back. [Register now](https://app.wavereview.com/accounts/register/)_
 
 
 == Installation ==
