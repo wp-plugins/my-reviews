@@ -4,7 +4,7 @@ Donate link: http://www.wavereview.com
 Tags: reviews, client reviews, product reviews, wavereview, wave review
 Requires at least: 3.4
 Tested up to: 3.8
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,10 @@ _[WaveReview](http://wavereview.com) is a revolutionary new online reputation ma
 1. Done!
 
 == Changelog ==
+
+= 1.1 =
+Clean up localization
+Redo method for featuring reviews
 
 = 1.0 =
 Add review column to post table

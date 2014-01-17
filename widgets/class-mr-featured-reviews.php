@@ -90,8 +90,7 @@ class MR_Featured_Reviews extends WP_Widget {
 			$args = array(
 				'post_type' => 'mr_review',
 				'post_per_page' => $instance['num_reviews'],
-				'meta_key' => 'mr_featured',
-				'meta_value_num' => 1
+				'mr_review_format' => 'featured',
 			);
 
 			$reviews = new WP_Query( $args );
@@ -172,15 +171,15 @@ class MR_Featured_Reviews extends WP_Widget {
 			
 	?>
 		<p>
-			<label for="<?php echo $this->get_field_id( 'title' ); ?>">Title:</label> 
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'my-reviews' ); ?></label>
 			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id( 'num_reviews' ); ?>">Number of Reviews to Show:</label> 
+			<label for="<?php echo $this->get_field_id( 'num_reviews' ); ?>"><?php _e( 'Number of Reviews to Show:', 'my-reviews' ); ?></label>
 			<input class="widefat" id="<?php echo $this->get_field_id( 'num_reviews' ); ?>" name="<?php echo $this->get_field_name( 'num_reviews' ); ?>" type="text" value="<?php echo absint( $instance['num_reviews'] ); ?>" />
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id( 'show_review_image' ); ?>">Show Review Featured Image:</label> 
+			<label for="<?php echo $this->get_field_id( 'show_review_image' ); ?>"><?php _e( 'Show Review Featured Image:', 'my-reviews' ); ?></label>
 			<input id="<?php echo $this->get_field_id( 'show_review_image' ); ?>" name="<?php echo $this->get_field_name( 'show_review_image' ); ?>" type="checkbox" value="1" <?php checked( $instance['show_review_image'], 1 ); ?> />
 		</p>
 	<?php 

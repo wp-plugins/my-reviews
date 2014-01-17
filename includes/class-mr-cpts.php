@@ -11,7 +11,6 @@ class MR_CPTS {
 	 *
 	 * @since 0.1
 	 * @uses add_action, add_filter
-	 * @return MR_CPTS
 	 */
 	private function __construct() {
 		add_action( 'init', array( $this, 'action_register_review' ) );
@@ -54,9 +53,9 @@ class MR_CPTS {
         $departure_time = get_post_meta( $post->ID, 'mr_checkout_date', true );
         $review_time = get_post_meta( $post->ID, 'mr_reviewed', true );
     ?>
-        <p><strong>Arrival Date:</strong> <?php echo date( 'j/n/Y g:i A', (int) $arrival_time ); ?></p>
-        <p><strong>Departure Date:</strong> <?php echo date( 'j/n/Y g:i A', (int) $departure_time ); ?></p>
-        <p><strong>Review Date:</strong> <?php echo date( 'j/n/Y g:i A', (int) $review_time ); ?></p>
+        <p><strong><?php _e( 'Arrival Date:', 'my-reviews' ); ?></strong> <?php echo date( 'j/n/Y g:i A', (int) $arrival_time ); ?></p>
+        <p><strong><?php _e( 'Departure Date:', 'my-reviews' ); ?></strong> <?php echo date( 'j/n/Y g:i A', (int) $departure_time ); ?></p>
+        <p><strong><?php _e( 'Review Date:', 'my-reviews' ); ?></strong> <?php echo date( 'j/n/Y g:i A', (int) $review_time ); ?></p>
     <?php
     }
 
@@ -161,7 +160,6 @@ class MR_CPTS {
 	 * Registers post type for review
 	 *
 	 * @since 0.1
-	 * @uses register_post_type, __, plugins_url
 	 * @return void
 	 */
 	public function action_register_review() {
@@ -199,6 +197,16 @@ class MR_CPTS {
 		); 
 
 		register_post_type( 'mr_review', $args );
+
+        $args = array(
+            'hierarchical' => false,
+            'show_ui' => false,
+            'show_admin_column' => false,
+            'query_var' => false,
+            'rewrite' => false,
+        );
+
+        register_taxonomy( 'mr_review_format', array( 'mr_review' ), $args );
 	}
 
 	/**
@@ -215,16 +223,19 @@ class MR_CPTS {
 
 		if ( ! empty( $_POST['mr_additional_options'] ) && wp_verify_nonce( $_POST['mr_additional_options'], 'mr_additional_options_action' ) ) {
 			if ( ! empty( $_POST['mr_featured'] ) ) {
-				update_post_meta( $post_id, 'mr_featured', 1 );
+                $featured = term_exists( 'featured', 'mr_review_format' );
+                if ( empty( $featured ) ) {
+                    $featured = wp_insert_term( 'featured', 'mr_review_format' );
+                }
+
+                wp_set_post_terms( $post_id, array( (int) $featured['term_id'] ), 'mr_review_format' );
 			} else {
-				delete_post_meta( $post_id, 'mr_featured' );
+                wp_set_post_terms( $post_id, array(), 'mr_review_format' );
 			}
 		}
 
 		if ( ! empty( $_POST['mr_review_details'] ) && wp_verify_nonce( $_POST['mr_review_details'], 'mr_review_details_action' ) ) {
 			
-			$current_email = get_post_meta( $post_id, 'mr_email', true );
-
 			if ( ! empty( $_POST['mr_email'] ) ) {
 				update_post_meta( $post_id, 'mr_email', sanitize_text_field( $_POST['mr_email'] ) );
 			} else {
@@ -245,13 +256,12 @@ class MR_CPTS {
 	 *
 	 * @param string $column
 	 * @param int $post_id
-	 * @uses get_post_meta, esc_html
 	 * @since 0.1
 	 * @return void
 	 */
 	public function action_custom_columns( $column, $post_id ) {
 		if ( 'mr_featured' == $column ) {
-			$featured = get_post_meta( $post_id, 'mr_featured', true );
+            $featured = has_term( 'featured', 'mr_review_format', $post );
 			echo ( ! empty( $featured ) ) ? __( 'Yes', 'my-reviews' ) : __( 'No', 'my-reviews' );
 		} else if ( 'mr_review' == $column ) {
             echo mr_truncate_str( get_the_content( $post_id ), 100 );
@@ -302,10 +312,10 @@ class MR_CPTS {
 	public function meta_box_additional_options( $post ) {
 		wp_nonce_field( 'mr_additional_options_action', 'mr_additional_options' );
 
-		$featured = get_post_meta( $post->ID, 'mr_featured', true );
+		$featured = has_term( 'featured', 'mr_review_format', $post );
 	?>
 		<p>
-			<label for="mr_featured">Featured Review:</label> <input type="checkbox" id="mr_featured" name="mr_featured" value="1" <?php checked( 1, (int) $featured ); ?> />
+			<label for="mr_featured"><?php _e( 'Featured Review:', 'my-reviews' ); ?></label> <input type="checkbox" id="mr_featured" name="mr_featured" value="1" <?php checked( true, (bool) $featured ); ?> />
 		</p>
 	<?php
 	}
@@ -406,7 +416,6 @@ class MR_CPTS {
 	 * Initialize class and return an instance of it
 	 *
 	 * @since 0.1
-	 * @return MR_CPTS
 	 */
 	public function init() {
 		if ( ! isset( self::$_instance ) ) {

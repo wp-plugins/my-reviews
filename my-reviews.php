@@ -4,7 +4,7 @@ Plugin Name: My Reviews
 Plugin URI: http://www.wavereview.com
 Description: Create and display reviews in WordPress. Syncs with WaveReview
 Author: Gem
-Version: 1.0
+Version: 1.1
 Author URI: http://www.wavereview.com
 */
 
@@ -271,7 +271,7 @@ class MR_My_Reviews {
 							<th scope="row"><label for="mr_service_name"><?php _e( 'Service Name:', 'my-reviews' ); ?></label></th>
 							<td>
 								<input type="text" id="mr_service_name" name="<?php echo MR_OPTION_NAME; ?>[service_name]" value="<?php echo esc_attr( $option['service_name'] ); ?>" /> 
-								<?php _e( 'i.e. The Marriot or Red Door Spa' ); ?>
+								<?php _e( 'i.e. The Marriot or Red Door Spa', 'my-reviews' ); ?>
 							</td>
 						</tr>
 					</tbody>
