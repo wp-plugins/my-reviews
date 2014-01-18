@@ -41,9 +41,32 @@ function mr_truncate_str( $str, $maxlen ) {
  * @return boolean
  */
 function mr_has_gravatar( $email ) {
-	$url = 'http://www.gravatar.com/avatar/' . md5( strtolower( trim ( $email ) ) ) . '?d=404';
-	$headers = @get_headers( $url );
-	return preg_match( '|200|', $headers[0] ) ? true : false;
+    $url = 'http://www.gravatar.com/avatar/' . md5( strtolower( trim ( $email ) ) ) . '?d=404';
+    $headers = @get_headers( $url );
+    return preg_match( '|200|', $headers[0] ) ? true : false;
+}
+
+/**
+ * Check if email has a gplus profile image
+ *
+ * @param string $email
+ * @since 1.1
+ * @return boolean|string
+ */
+function mr_has_gplus( $email ) {
+    $user_id = preg_replace( '/@(gmail|googlemail)\.com$/i', '', trim( $email ) );
+
+    $request = wp_remote_request( 'https://plus.google.com/s2/photos/profile/' . $user_id . '?sz=100' );
+
+    if ( ! empty( $request['response'] ) ) {
+        if ( ! empty( $request['response']['code'] ) ) {
+            if ( (int) $request['response']['code'] == 200 ) {
+                return 'https://plus.google.com/s2/photos/profile/' . $user_id . '?sz=80';
+            }
+        }
+    }
+
+    return false;
 }
 
 

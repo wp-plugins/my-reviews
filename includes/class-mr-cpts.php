@@ -91,14 +91,19 @@ class MR_CPTS {
 		if ( ( 'post.php' != $hook || 'post-new.php' != $hook ) && 'mr_review' == get_post_type() ) {
 			global $post;
 
-			wp_enqueue_script( 'mr-admin', plugins_url( '/js/admin.js', dirname( __FILE__ ) ), array( 'jquery' ), '1.0', true );
+            if ( defined( WP_DEBUG ) && WP_DEBUG )
+                $js_path = '/js/admin.js';
+            else
+                $js_path = '/build/js/admin-concat.min.js';
+
+			wp_enqueue_script( 'mr-admin', plugins_url( $js_path, dirname( __FILE__ ) ), array( 'jquery' ), '1.0', true );
 		
 			$thumbnail_id = get_post_meta( $post->ID, '_thumbnail_id', true );
 			if ( empty( $thumbnail_id ) )
 				$thumbnail_id = 0;
 
 			$local_array = array(
-				'has_gravatar_nonce' => wp_create_nonce( 'has_gravatar_nonce' ),
+				'get_images_nonce' => wp_create_nonce( 'get_images_nonce' ),
 				'set_thumbnail_nonce' => wp_create_nonce( 'set_post_thumbnail-' . $post->ID ),
 				'thumbnail_id' => (int) $thumbnail_id,
 			);
@@ -116,7 +121,11 @@ class MR_CPTS {
 	 */
 	public function action_admin_enqueue_styles( $hook ) {
 		if ( ( 'post.php' != $hook || 'post-new.php' != $hook ) && 'mr_review' == get_post_type() ) {
-			wp_enqueue_style( 'mr-admin', plugins_url( '/css/admin.css', dirname( __FILE__ ) ) );
+            if ( defined( WP_DEBUG ) && WP_DEBUG )
+                $css_path = '/build/css/admin.css';
+            else
+                $css_path = '/build/css/admin.min.css';
+			wp_enqueue_style( 'mr-admin', plugins_url( $css_path, dirname( __FILE__ ) ) );
 		}
 	}
 
@@ -214,7 +223,6 @@ class MR_CPTS {
 	 *
 	 * @param int $post_id
 	 * @since 0.1
-	 * @uses current_user_can, get_post_type, wp_verify_nonce, update_post_meta, deleta_post_meta, esc_url_raw
 	 * @return void
 	 */
 	public function action_save_post( $post_id ) {
@@ -242,11 +250,17 @@ class MR_CPTS {
 				delete_post_meta( $post_id, 'mr_email' );
 			}
 
-			if ( ! empty( $_POST['mr_use_gravatar'] ) ) {
-				update_post_meta( $post_id, 'mr_use_gravatar', esc_url_raw( $_POST['mr_use_gravatar'] ) );
-			} else {
-				delete_post_meta( $post_id, 'mr_use_gravatar' );
-			}
+            if ( ! empty( $_POST['mr_reviewer_image'] ) ) {
+                update_post_meta( $post_id, 'mr_reviewer_image', esc_url_raw( $_POST['mr_reviewer_image'] ) );
+            } else {
+                delete_post_meta( $post_id, 'mr_reviewer_image' );
+            }
+
+            if ( ! empty( $_POST['mr_reviewer_image_type'] ) ) {
+                update_post_meta( $post_id, 'mr_reviewer_image_type', sanitize_text_field( $_POST['mr_reviewer_image_type'] ) );
+            } else {
+                delete_post_meta( $post_id, 'mr_reviewer_image_type' );
+            }
 		}
 		
 	}
@@ -368,18 +382,33 @@ class MR_CPTS {
 		wp_nonce_field( 'mr_review_details_action', 'mr_review_details' );
 
 		$email = get_post_meta( $post->ID, 'mr_email', true );
-		$use_gravatar = get_post_meta( $post->ID, 'mr_use_gravatar', true );
+        $reviewer_image = get_post_meta( $post->ID, 'mr_reviewer_image', true );
+        $reviewer_image_type = get_post_meta( $post->ID, 'mr_reviewer_image_type', true );
+
+        $use_gravatar = ( ! empty( $reviewer_image ) && $reviewer_image_type == 'gravatar' ) ? true : false;
+        $use_gplus = ( ! empty( $reviewer_image ) && $reviewer_image_type == 'gplus' ) ? true : false;
 	?>
-		<p>
-			<label for="mr_email"><?php _e( 'Reviewer Email:', 'my-reviews' ); ?></label> <input class="regular-text" type="text" id="mr_email" name="mr_email" value="<?php echo esc_attr( $email ); ?>" /> (This will be kept private)<br />
-			<div class="mr-has-gravatar">
-				<div class="gravatar"></div>
-				<div class="options">
-					<p><?php _e( 'My Reviews allows you to insert a featured image into each of your reviews. Featured images can be anything you want - business image, reviewer photo, etc. If a reviewers email is associated with a gravatar or "globally recoginized avatar", you can use that avatar as the featured image.', 'my-reviews' ); ?></p>
-					<input <?php if ( ! empty( $use_gravatar ) ) echo 'checked="checked"'; ?> type="checkbox" value="0" name="mr_use_gravatar" /> <?php _e( 'Use Gravatar as Featured Image', 'my-review' ); ?>
-				</div>
-			</div>
-		</p>
+	    <p>
+            <label for="mr_email"><?php _e( 'Reviewer Email:', 'my-reviews' ); ?></label> <input class="regular-text" type="text" id="mr_email" name="mr_email" value="<?php echo esc_attr( $email ); ?>" /> (This will be kept private)
+	    </p>
+
+		<div class="mr-external-images">
+            <input type="hidden" name="mr_reviewer_image" value="<?php echo esc_url( $reviewer_image ); ?>" />
+            <input type="hidden" name="mr_reviewer_image_type" value="<?php echo esc_attr( $reviewer_image_type ); ?>" />
+            <p><?php _e( 'My Reviews allows you to insert a featured image into each of your reviews. Featured images can be anything you want: business image, reviewer photo, etc. If a reviewers email is associated with a gravatar (globally recoginized avatar) or a Google Plus account, you can use that avatar as the featured image.', 'my-reviews' ); ?></p>
+            <div class="row gravatar-row">
+                <div class="gravatar"></div>
+                <div class="options">
+                    <input <?php if ( $use_gravatar ) echo 'checked="checked"'; ?> type="checkbox" value="1" name="mr_use_gravatar" /> <?php _e( 'Use Gravatar as featured image', 'my-review' ); ?>
+                </div>
+            </div>
+            <div class="row gplus-row">
+                <div class="gplus"></div>
+                <div class="options">
+                    <input <?php if ( $use_gplus ) echo 'checked="checked"'; ?> type="checkbox" value="1" name="mr_use_gplus" /> <?php _e( 'Use Google Plus profile picture as featured image', 'my-review' ); ?>
+                </div>
+            </div>
+		</div>
 	<?php
 	}
 

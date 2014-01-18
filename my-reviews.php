@@ -4,7 +4,7 @@ Plugin Name: My Reviews
 Plugin URI: http://www.wavereview.com
 Description: Create and display reviews in WordPress. Syncs with WaveReview
 Author: Gem
-Version: 1.1
+Version: 1.2
 Author URI: http://www.wavereview.com
 */
 
@@ -128,8 +128,12 @@ class MR_My_Reviews {
 			$css_url = get_template_directory_uri() . '/my-reviews/css/my-reviews.css';
 		elseif ( file_exists( TEMPLATEPATH . '/my-reviews/my-reviews.css' ) )
 			$css_url = get_template_directory_uri(). '/my-reviews/my-reviews.css';
-		else
-			$css_url = plugins_url( 'includes/template/css/my-reviews.css', __FILE__ );
+		else {
+            if ( defined( WP_DEBUG ) && WP_DEBUG )
+                $css_url = plugins_url( 'build/css/my-reviews.css', __FILE__ );
+            else
+                $css_url = plugins_url( 'build/css/my-reviews.min.css', __FILE__ );
+        }
 
 		$css_url = apply_filters( 'mr_stylesheet_url', $css_url );
 

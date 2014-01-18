@@ -16,26 +16,27 @@ class MR_AJAX {
 	 * @return MR_AJAX
 	 */
 	private function __construct() {
-		add_action( 'wp_ajax_has_gravatar', array( $this, 'action_has_gravatar' ) );
+		add_action( 'wp_ajax_get_images', array( $this, 'action_get_images' ) );
 	}
 
 	/**
 	 * Check if email has gravatar
 	 *
-	 * @since 0.2
-	 * @uses check_ajax_referer
+	 * @since 1.1
 	 * @return void
 	 */
-	public function action_has_gravatar() {
+	public function action_get_images() {
 		$output = array();
 		$output['success'] = false;
 
-		if ( check_ajax_referer( 'has_gravatar_nonce', 'nonce', false ) && ! empty( $_POST['email'] ) ) {
+		if ( check_ajax_referer( 'get_images_nonce', 'nonce', false ) && ! empty( $_POST['email'] ) ) {
 
-			if ( mr_has_gravatar( $_POST['email'] ) )
-				$output[$_POST['email']] = 'http://www.gravatar.com/avatar/' . md5( $_POST['email'] );
-			else
-				$output[$_POST['email']] = false;
+            if ( mr_has_gravatar( $_POST['email'] ) )
+                $output['gravatar'] = 'http://www.gravatar.com/avatar/' . md5( $_POST['email'] );
+            else
+                $output['gravatar'] = false;
+
+            $output['gplus'] = mr_has_gplus( $_POST['email'] );
 
 			$output['success'] = true;
 		}
