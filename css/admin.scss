@@ -1,0 +1,47 @@
+
+.mr-external-images {
+	display: none;
+	overflow: auto;
+}
+
+.mr-external-images .row {
+    overflow: auto;
+    margin-top: 1em;
+}
+
+#mr_review_details label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: .4em;
+}
+
+.mr-external-images .gravatar,
+.mr-external-images .gplus {
+	width: 80px;
+	height: 80px;
+    overflow: hidden;
+	float: left;
+	margin-right: 10px;
+}
+
+.mr-external-images .gravatar img,
+.mr-external-images .gplus img {
+    display: none;
+}
+
+.mr-external-images .options {
+	margin-left: 90px;
+}
+
+.mr-external-images p {
+	margin: 0 0 5px 0;
+	color: #666;
+}
+
+.mr-external-images input.button {
+	color: #666;
+}
+
+#mr_additional_options input {
+    margin-left: .5em;
+}
