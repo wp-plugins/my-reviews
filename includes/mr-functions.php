@@ -41,7 +41,7 @@ function mr_truncate_str( $str, $maxlen ) {
  * @return boolean
  */
 function mr_has_gravatar( $email ) {
-    $url = 'http://www.gravatar.com/avatar/' . md5( strtolower( trim ( $email ) ) ) . '?d=404';
+    $url = 'https://www.gravatar.com/avatar/' . md5( strtolower( trim ( $email ) ) );
     $headers = @get_headers( $url );
     return preg_match( '|200|', $headers[0] ) ? true : false;
 }
@@ -56,12 +56,12 @@ function mr_has_gravatar( $email ) {
 function mr_has_gplus( $email ) {
     $user_id = preg_replace( '/@(gmail|googlemail)\.com$/i', '', trim( $email ) );
 
-    $request = wp_remote_request( 'https://plus.google.com/s2/photos/profile/' . $user_id . '?sz=100' );
+    $request = wp_remote_request( 'https://plus.google.com/s2/photos/profile/' . $user_id );
 
     if ( ! empty( $request['response'] ) ) {
         if ( ! empty( $request['response']['code'] ) ) {
             if ( (int) $request['response']['code'] == 200 ) {
-                return 'https://plus.google.com/s2/photos/profile/' . $user_id . '?sz=80';
+                return 'https://plus.google.com/s2/photos/profile/' . $user_id;
             }
         }
     }

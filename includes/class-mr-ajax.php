@@ -32,7 +32,7 @@ class MR_AJAX {
 		if ( check_ajax_referer( 'get_images_nonce', 'nonce', false ) && ! empty( $_POST['email'] ) ) {
 
             if ( mr_has_gravatar( $_POST['email'] ) )
-                $output['gravatar'] = 'http://www.gravatar.com/avatar/' . md5( $_POST['email'] );
+                $output['gravatar'] = 'https://www.gravatar.com/avatar/' . md5( $_POST['email'] );
             else
                 $output['gravatar'] = false;
 

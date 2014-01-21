@@ -15,9 +15,13 @@
 .mr-external-images .gplus {
   width: 80px;
   height: 80px;
-  display: none;
+  overflow: hidden;
   float: left;
   margin-right: 10px; }
+
+.mr-external-images .gravatar img,
+.mr-external-images .gplus img {
+  display: none; }
 
 .mr-external-images .options {
   margin-left: 90px; }

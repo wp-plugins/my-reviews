@@ -4,7 +4,7 @@ Plugin Name: My Reviews
 Plugin URI: http://www.wavereview.com
 Description: Create and display reviews in WordPress. Syncs with WaveReview
 Author: Gem
-Version: 1.2
+Version: 1.3
 Author URI: http://www.wavereview.com
 */
 

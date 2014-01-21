@@ -83,8 +83,10 @@
             if ( images.gravatar ) {
                 $external_images
                     .show()
-                    .find( '.gravatar' )
-                    .css( { 'background' : 'url(' + images.gravatar + ') no-repeat top left' } )
+                    .find( '.gravatar img' )
+                    .attr( 'src', images.gravatar )
+                    .show()
+                    .parent()
                     .show();
 
                 $use_gravatar.val( images.gravatar );
@@ -95,8 +97,10 @@
             if ( images.gplus ) {
                 $external_images
                     .show()
-                    .find( '.gplus' )
-                    .css( { 'background' : 'url(' + images.gplus + ') no-repeat top left' } )
+                    .find( '.gplus img' )
+                    .attr( 'src', images.gravatar )
+                    .show()
+                    .parent()
                     .show();
 
                 $use_gplus.val( images.gplus );
@@ -172,13 +176,13 @@
                 }
             } );
 
-            if ( mr_data.thumbnail_id == '0' ) {
+            if ( mr_data.thumbnail_id == '0' || mr_data.thumbnail_id == -1 ) {
                 if ( $use_gravatar.is( ':checked' ) ) {
-                    feature_image( $use_gravatar.val() );
+                    feature_image( $use_gravatar.val() + '?s=200' );
                     $reviewer_image_type.val( 'gravatar' );
                     $reviewer_image.val( $use_gravatar.val() );
                 } else if ( $use_gplus.is( ':checked' ) ) {
-                    feature_image( $use_gplus.val() );
+                    feature_image( $use_gplus.val() + '?sz=200' );
                     $reviewer_image_type.val( 'gravatar' );
                     $reviewer_image.val( $use_gravatar.val() );
                 } else {
@@ -202,10 +206,11 @@
                 } );
 
                 if ( $target.is( ':checked' ) ) {
-                    feature_image( $target.val() );
                     if ( $target.attr( 'name' ) == 'mr_use_gravatar' ) {
+                        feature_image( $target.val() + '?s=200' );
                         $reviewer_image_type.val( 'gravatar' );
                     } else if ( $target.attr( 'name' ) == 'mr_use_gplus' ) {
+                        feature_image( $target.val() + '?sz=200' );
                         $reviewer_image_type.val( 'gplus' );
                     }
 

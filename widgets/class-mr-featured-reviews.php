@@ -69,8 +69,7 @@ class MR_Featured_Reviews extends WP_Widget {
 	 * 
 	 * @param array $args
 	 * @param array $instance
-	 * @uses esc_html, wp_parse_args, have_posts, the_post, wp_reset_postdata, the_title, the_permalink,
-	 *		 get_the_excerpt, get_transient, set_transient, add_filter, remove_filter, home_url, sanitize_tezt_field
+     * @since 0.1
 	 * @return void
 	 */
 	public function widget( $args, $instance ) {
@@ -89,7 +88,7 @@ class MR_Featured_Reviews extends WP_Widget {
 			$instance = wp_parse_args( $instance, $defaults );
 			$args = array(
 				'post_type' => 'mr_review',
-				'post_per_page' => $instance['num_reviews'],
+				'posts_per_page' => $instance['num_reviews'],
 				'mr_review_format' => 'featured',
 			);
 
@@ -127,7 +126,7 @@ class MR_Featured_Reviews extends WP_Widget {
 						<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
 					</div>
 					<?php if ( $reviewed = get_post_meta( get_the_ID(), 'mr_reviewed', true ) ) : ?>
-						<div class="date"><?php echo date( 'M j - Y', sanitize_text_field( $reviewed ) ); ?></div>
+						<div class="date"><?php echo date( 'M j - Y', esc_attr( $reviewed ) ); ?></div>
 					<?php endif; ?>
 					<blockquote>
 						<?php echo get_the_excerpt(); ?>

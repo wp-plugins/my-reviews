@@ -25,7 +25,30 @@ class MR_CPTS {
 		add_action( 'init', array( $this, 'action_register_image_sizes' ) );
 		add_filter( 'post_thumbnail_html', array( $this, 'filter_post_thumbnail_html' ), 10, 5 );
         add_action( 'add_meta_boxes', array( $this, 'action_add_meta_boxes' ) );
+        $check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single );
+        add_filter( 'get_post_metadata', array( $this, 'filter_get_post_metadata' ), 10, 4 );
 	}
+
+    /**
+     * @param $default
+     * @param $object_id
+     * @param $meta_key
+     * @param $single
+     * @since 1.3
+     * @return int
+     */
+    public function filter_get_post_metadata( $default, $object_id, $meta_key, $single ) {
+        if ( '_thumbnail_id' == $meta_key ) {
+            if ( 'mr_review' == get_post_type( $object_id ) ) {
+                $reviewer_image = get_post_meta( $object_id, 'mr_reviewer_image', true );
+                if ( ! empty( $reviewer_image ) ) {
+                    return -1;
+                }
+            }
+        }
+
+        return $default;
+    }
 
     /**
      *  Register meta boxes
@@ -279,6 +302,12 @@ class MR_CPTS {
 			echo ( ! empty( $featured ) ) ? __( 'Yes', 'my-reviews' ) : __( 'No', 'my-reviews' );
 		} else if ( 'mr_review' == $column ) {
             echo mr_truncate_str( get_the_content( $post_id ), 100 );
+        } else if ( 'mr_featured_image' == $column ) {
+            if ( has_post_thumbnail( $post_id ) ) {
+                echo get_the_post_thumbnail( $post_id, 'mr-widget-thumb' );
+            } else {
+                echo 'None';
+            }
         }
 	}
 	
@@ -290,9 +319,10 @@ class MR_CPTS {
 	 * @return array
 	 */
 	public function filter_columns( $columns ) {
-		$columns['mr_featured'] = __( 'Featured', 'my-reviews' );
+        $columns['mr_featured'] = __( 'Featured', 'my-reviews' );
         $columns['mr_review'] = __( 'Review', 'my-reviews' );
 		$columns['title'] = __( 'Reviewer', 'my-reviews' );
+        $columns['mr_featured_image'] = __( 'Reviewer Image', 'my-reviews' );
 
 		unset($columns['author']);
 		
@@ -343,27 +373,34 @@ class MR_CPTS {
 	 * @param string $size
 	 * @param array $attr
 	 * @since 0.2
-	 * @uses is_admin, get_post_type, get_post_meta, esc_url, apply_filters
 	 * @return string
 	 */
 	public function filter_post_thumbnail_html( $html, $post_id, $post_thumbnail_id, $size, $attr ) {
-		if ( is_admin() || 'mr_review' != get_post_type( $post_id ) ) {
+		if ( 'mr_review' != get_post_type( $post_id ) ) {
 			return $html;
 		}
 
-		if ( ! empty( $post_thumbnail_id ) ) {
+        if ( is_admin() ) {
+            global $pagenow;
+            if ( 'edit.php' != $pagenow ) {
+                return $html;
+            }
+        }
+
+		if ( ! empty( $post_thumbnail_id ) && $post_thumbnail_id != -1 ) {
 			return $html;
 		}
 
 		global $_wp_additional_image_sizes;
 
-		$gravatar = get_post_meta( $post_id, 'mr_use_gravatar', true );
-		if ( ! empty( $gravatar ) ) {
+		$reviewer_image = get_post_meta( $post_id, 'mr_reviewer_image', true );
+
+		if ( ! empty( $reviewer_image ) ) {
 			if ( ! empty( $_wp_additional_image_sizes[$size] ) && ! empty( $_wp_additional_image_sizes[$size]['width'] ) ) {
 				$width = $_wp_additional_image_sizes[$size]['width'];
 				if ( apply_filters( 'mr_max_review_image_width', 200, $post_id ) < $width )
 					$width = apply_filters( 'mr_max_review_image_width', 200, $post_id );
-				return '<a href="' . esc_url( $gravatar ) . '?s=' . (int) $width . '"><img width="' . (int) $width . '" height="' . (int) $width . '" src="' . esc_url( $gravatar ) . '?s=' . (int) $width . '" /></a>';
+				return '<a href="' . esc_url( $reviewer_image ) . '?s=' . (int) $width . '&sz=' . (int) $width . '"><img width="' . (int) $width . '" src="' . esc_url( $reviewer_image ) . '?s=' . (int) $width . '&sz=' . (int) $width . '" /></a>';
 			}
 		}
 
@@ -397,13 +434,13 @@ class MR_CPTS {
             <input type="hidden" name="mr_reviewer_image_type" value="<?php echo esc_attr( $reviewer_image_type ); ?>" />
             <p><?php _e( 'My Reviews allows you to insert a featured image into each of your reviews. Featured images can be anything you want: business image, reviewer photo, etc. If a reviewers email is associated with a gravatar (globally recoginized avatar) or a Google Plus account, you can use that avatar as the featured image.', 'my-reviews' ); ?></p>
             <div class="row gravatar-row">
-                <div class="gravatar"></div>
+                <div class="gravatar"><img src="" width="80"></div>
                 <div class="options">
                     <input <?php if ( $use_gravatar ) echo 'checked="checked"'; ?> type="checkbox" value="1" name="mr_use_gravatar" /> <?php _e( 'Use Gravatar as featured image', 'my-review' ); ?>
                 </div>
             </div>
             <div class="row gplus-row">
-                <div class="gplus"></div>
+                <div class="gplus"><img src="" width="80"></div>
                 <div class="options">
                     <input <?php if ( $use_gplus ) echo 'checked="checked"'; ?> type="checkbox" value="1" name="mr_use_gplus" /> <?php _e( 'Use Google Plus profile picture as featured image', 'my-review' ); ?>
                 </div>
