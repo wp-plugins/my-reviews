@@ -1,0 +1,52 @@
+
+.mr-external-images {
+		display: none;
+		overflow: auto;
+	.row {
+		overflow: auto;
+		margin-top: 1em;
+	}
+
+	.gravatar-row {
+		display: none;
+	}
+
+	.gplus-row {
+		display: none;
+	}
+
+	.gravatar, .gplus {
+		width: 80px;
+		height: 80px;
+		overflow: hidden;
+		float: left;
+		margin-right: 10px;
+	}
+
+	.gravatar img, .gplus img {
+		display: none
+	}
+
+	.options {
+		margin-left: 90px;
+	}
+
+	p {
+		margin: 0 0 5px 0;
+		color: #666;
+	}
+
+	input.button {
+		color: #666;
+	}
+}
+
+#mr_review_details label {
+	display: block;
+	font-weight: bold;
+	margin-bottom: .5em;
+}
+
+#mr_additional_options input {
+	margin-left: .5em;
+}
