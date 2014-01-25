@@ -122,8 +122,24 @@ class MR_WaveReview_Pull {
 				if ( ! empty( $review->created ) )
 					update_post_meta( $post_id, 'mr_reviewed', sanitize_text_field( strtotime( $review->created ) ) );
 
-                if ( ! empty( $review->email ) )
-                    update_post_meta( $post_id, 'mr_email', sanitize_text_field( $review->email ) );
+                if ( ! empty( $review->email ) ) {
+                    $email = sanitize_text_field( $review->email );
+                    update_post_meta( $post_id, 'mr_email', $email );
+
+                    $gravatar = false;
+                    if ( mr_has_gravatar( $email ) )
+                        $gravatar = 'https://www.gravatar.com/avatar/' . md5( $email );
+
+                    $gplus = mr_has_gplus( $email );
+
+                    if ( $gravatar ) {
+                        update_post_meta( $post_id, 'mr_reviewer_image', esc_url_raw( $gravatar ) );
+                        update_post_meta( $post_id, 'mr_reviewer_image_type', 'gravatar' );
+                    } elseif ( $gplus ) {
+                        update_post_meta( $post_id, 'mr_reviewer_image', esc_url_raw( $gplus ) );
+                        update_post_meta( $post_id, 'mr_reviewer_image_type', 'gplus' );
+                    }
+                }
 
                 if ( ! empty( $review->vote ) )
                     update_post_meta( $post_id, 'mr_vote', (int) $review->vote );
@@ -210,7 +226,7 @@ class MR_WaveReview_Pull {
 
 	    if ( is_wp_error( $response ) )
 	    	return false;
-	    
+
 	    $response_array = mr_parse_response( $response, array( 'detail' => '' ) );
 
 	    return empty( $response_array['detail'] );

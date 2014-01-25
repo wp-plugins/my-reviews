@@ -1,10 +1,10 @@
 === My Reviews ===
 Contributors: gswardman
 Donate link: http://www.wavereview.com
-Tags: reviews, client reviews, product reviews, wavereview, wave review
-Requires at least: 3.4
+Tags: reviews, client reviews, product reviews, wavereview, wave review, testimonials
+Requires at least: 3.5
 Tested up to: 3.8
-Stable tag: 1.3
+Stable tag: 1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,12 @@ _[WaveReview](http://wavereview.com) is a revolutionary new online reputation ma
 1. Done!
 
 == Changelog ==
+
+= 1.4 =
+Automatically feature reviewer photos
+Default sync to draft
+Fix featuring check bug
+Add reviews/featured endpoint
 
 = 1.3 =
 Trick has_post_thumbnail to work

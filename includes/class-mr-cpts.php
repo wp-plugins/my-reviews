@@ -25,9 +25,49 @@ class MR_CPTS {
 		add_action( 'init', array( $this, 'action_register_image_sizes' ) );
 		add_filter( 'post_thumbnail_html', array( $this, 'filter_post_thumbnail_html' ), 10, 5 );
         add_action( 'add_meta_boxes', array( $this, 'action_add_meta_boxes' ) );
-        $check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, $single );
+        add_action( 'restrict_manage_posts', array( $this, 'action_restrict_manage_posts' ) );
         add_filter( 'get_post_metadata', array( $this, 'filter_get_post_metadata' ), 10, 4 );
+        add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ) );
 	}
+
+    /**
+     * Filter admin post table query based on filter
+     *
+     * @param object $query
+     * @since 1.4
+     */
+    public function action_pre_get_posts( $query ) {
+        if ( ! is_admin() )
+            return;
+
+        global $pagenow;
+        if ( 'edit.php' != $pagenow )
+            return;
+
+        if ( empty( $_GET['post_type'] ) || 'mr_review' != $_GET['post_type'] )
+            return;
+
+        if ( empty( $_GET['mr_review_format'] ) )
+            return;
+
+        $tax_query = $query->get( 'tax_query' );
+        if ( empty( $tax_query ) )
+            $tax_query = array();
+
+        $format_query = array(
+            'taxonomy' => 'mr_review_format',
+            'field' => 'slug',
+            'terms' => 'featured'
+        );
+
+        if ( $_GET['mr_review_format'] == 'not_featured' ) {
+            $format_query['operator'] = 'NOT IN';
+        }
+
+        $tax_query[] = $format_query;
+
+        $query->set( 'tax_query', $tax_query );
+    }
 
     /**
      * @param $default
@@ -195,6 +235,16 @@ class MR_CPTS {
 	 * @return void
 	 */
 	public function action_register_review() {
+        $args = array(
+            'hierarchical' => false,
+            'show_ui' => false,
+            'show_admin_column' => false,
+            'query_var' => true,
+            'rewrite' => array( 'slug' => 'reviews' ),
+        );
+
+        register_taxonomy( 'mr_review_format', array( 'mr_review' ), $args );
+
 		$labels = array(
 			'name' => __( 'Reviews', 'my-reviews' ),
 			'singular_name' => __( 'Review', 'my-reviews' ),
@@ -218,9 +268,9 @@ class MR_CPTS {
 			'show_ui' => true, 
 			'show_in_menu' => true, 
 			'query_var' => true,
-			'rewrite' => array( 'slug' => 'reviews' ),
+			'rewrite' => array( 'slug' => 'reviews/%mr_review_format%' ),
 			'capability_type' => 'post',
-			'has_archive' => true, 
+			'has_archive' => 'reviews',
 			'hierarchical' => false,
 			'register_meta_box_cb' => array( $this, 'add_metaboxes' ),
 			'menu_position' => null,
@@ -229,16 +279,6 @@ class MR_CPTS {
 		); 
 
 		register_post_type( 'mr_review', $args );
-
-        $args = array(
-            'hierarchical' => false,
-            'show_ui' => false,
-            'show_admin_column' => false,
-            'query_var' => false,
-            'rewrite' => false,
-        );
-
-        register_taxonomy( 'mr_review_format', array( 'mr_review' ), $args );
 	}
 
 	/**
@@ -448,6 +488,31 @@ class MR_CPTS {
 		</div>
 	<?php
 	}
+
+    /**
+     * Output filter to posts table
+     *
+     * @since 1.4
+     * @return void
+     */
+    function action_restrict_manage_posts() {
+        global $pagenow;
+
+        if ( $pagenow != 'edit.php' || 'mr_review' != get_post_type() )
+            return false;
+
+        $selected = ( ! empty( $_GET['mr_review_format'] ) ) ? esc_attr( $_GET['mr_review_format'] ) : '';
+
+        ?>
+
+        <select name="mr_review_format">
+            <option value=""><?php _e( 'All Reviews', 'my-reviews' ); ?></option>
+            <option <?php selected( $selected, 'featured' ); ?> value="featured"><?php _e( 'Featured Reviews', 'my-reviews' ); ?></option>
+            <option <?php selected( $selected, 'not_featured' ); ?> value="not_featured"><?php _e( 'Not Featured Reviews', 'my-reviews' ); ?></option>
+        </select>
+
+        <?php
+    }
 
 	/**
 	 * Filter CPT messages

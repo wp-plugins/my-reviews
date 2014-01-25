@@ -53,11 +53,11 @@
                 data: params,
                 async: false,
                 success: function( data, textStatus, jqXHR ) {
-                    if ( data.gravatar ) {
+                    if ( typeof data.gravatar != 'undefined' ) {
                         images.gravatar = data.gravatar;
                     }
 
-                    if ( data.gplus ) {
+                    if (typeof data.gplus != 'undefined' ) {
                         images.gplus = data.gplus;
                     }
 
@@ -71,15 +71,6 @@
 
         function setup_images() {
 
-            if ( ! images.gravatar && ! images.gplus ) {
-                $external_images.fadeOut();
-                $( '.mr-featured-image' ).remove();
-                $use_gravatar.prop( 'checked', false );
-
-                $use_gplus.prop( 'checked', false );
-                return;
-            }
-
             if ( images.gravatar ) {
                 $external_images
                     .show()
@@ -90,22 +81,41 @@
                     .show();
 
                 $use_gravatar.val( images.gravatar );
-
                 $gravatar_row.fadeIn();
+            } else {
+                $external_images
+                    .find( '.gravatar img' )
+                    .attr( 'src', '' );
+                $gravatar_row.hide();
+                $use_gravatar.val( '' );
+                $use_gravatar.prop( 'checked', false );
             }
 
             if ( images.gplus ) {
                 $external_images
                     .show()
                     .find( '.gplus img' )
-                    .attr( 'src', images.gravatar )
+                    .attr( 'src', images.gplus )
                     .show()
                     .parent()
                     .show();
 
                 $use_gplus.val( images.gplus );
-
                 $gplus_row.fadeIn();
+            } else {
+                $external_images
+                    .find( '.gplus img' )
+                    .attr( 'src', '' );
+                $gplus_row.hide();
+                $use_gplus.val( '' );
+                $use_gplus.prop( 'checked', false );
+            }
+
+            if ( ! images.gravatar && ! images.gplus ) {
+                $external_images.fadeOut();
+                if ( $new_image != null ) {
+                    $new_image.hide();
+                }
             }
         }
 
@@ -115,21 +125,21 @@
             }
 
             $.ajax( {
-                type: 'POST',
-                url: ajaxurl,
-                data: {
-                    action: "set-post-thumbnail",
-                    post_id: $('#post_ID').val(),
-                    thumbnail_id: -1,
-                    _ajax_nonce: mr_data.set_thumbnail_nonce,
-                    cookie: encodeURIComponent(document.cookie)
+                type : 'POST',
+                url : ajaxurl,
+                data : {
+                    action : "set-post-thumbnail",
+                    post_id : $( '#post_ID' ).val(),
+                    thumbnail_id : -1,
+                    _ajax_nonce : mr_data.set_thumbnail_nonce,
+                    cookie : encodeURIComponent( document.cookie )
                 },
-                success: function(str){
+                success : function( str ) {
                     if ( str != '0' ) {
-                        WPSetThumbnailHTML(str);
+                        WPSetThumbnailHTML( str );
                     }
                 },
-                async: false
+                async : false
             } );
 
             if ( $new_image === null ) {
@@ -140,6 +150,7 @@
                 $new_image
                     .find( 'img' )
                     .attr( 'src', image );
+                $new_image.show();
             }
         }
 
@@ -152,6 +163,8 @@
             wp.media.featuredImage.set = function( id ) {
                 set_featured_image( id );
 
+                $reviewer_image.val( '' );
+                $reviewer_image_type.val( '' );
                 $use_gravatar.prop( 'checked', false );
                 $use_gplus.prop( 'checked', false );
             };
@@ -171,7 +184,9 @@
                     $use_gplus.prop( 'checked', false );
                     $reviewer_image.val( '' );
                     $reviewer_image_type.val( '' );
-                    $( '.mr-featured-image' ).remove();
+                    if ( $new_image != null ) {
+                        $new_image.hide();
+                    }
                     $external_images.hide();
                 }
             } );
@@ -183,10 +198,12 @@
                     $reviewer_image.val( $use_gravatar.val() );
                 } else if ( $use_gplus.is( ':checked' ) ) {
                     feature_image( $use_gplus.val() + '?sz=200' );
-                    $reviewer_image_type.val( 'gravatar' );
-                    $reviewer_image.val( $use_gravatar.val() );
+                    $reviewer_image_type.val( 'gplus' );
+                    $reviewer_image.val( $use_gplus.val() );
                 } else {
-                    $( '.mr-featured-image' ).remove();
+                    if ( $new_image != null ) {
+                        $new_image.hide();
+                    }
                 }
             } else {
                 $use_gravatar.prop( 'checked', false );
@@ -218,7 +235,9 @@
                 } else {
                     $reviewer_image.val( '' );
                     $reviewer_image_type.val( '' );
-                    $( '.mr-featured-image' ).remove();
+                    if ( $new_image != null ) {
+                        $new_image.hide();
+                    }
                 }
             } );
         }

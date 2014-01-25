@@ -41,7 +41,7 @@ function mr_truncate_str( $str, $maxlen ) {
  * @return boolean
  */
 function mr_has_gravatar( $email ) {
-    $url = 'https://www.gravatar.com/avatar/' . md5( strtolower( trim ( $email ) ) );
+    $url = 'https://www.gravatar.com/avatar/' . md5( strtolower( trim ( $email ) ) ) . '?d=404';
     $headers = @get_headers( $url );
     return preg_match( '|200|', $headers[0] ) ? true : false;
 }
@@ -54,7 +54,7 @@ function mr_has_gravatar( $email ) {
  * @return boolean|string
  */
 function mr_has_gplus( $email ) {
-    $user_id = preg_replace( '/@(gmail|googlemail)\.com$/i', '', trim( $email ) );
+    $user_id = preg_replace( '/@(gmail|googlemail)\.com$/i', '', strtolower( trim( $email ) ) );
 
     $request = wp_remote_request( 'https://plus.google.com/s2/photos/profile/' . $user_id );
 

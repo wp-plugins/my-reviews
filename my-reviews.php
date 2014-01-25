@@ -4,7 +4,7 @@ Plugin Name: My Reviews
 Plugin URI: http://www.wavereview.com
 Description: Create and display reviews in WordPress. Syncs with WaveReview
 Author: Gem
-Version: 1.3
+Version: 1.4
 Author URI: http://www.wavereview.com
 */
 
@@ -14,14 +14,14 @@ Author URI: http://www.wavereview.com
 define( 'MR_OPTION_NAME', 'my_reviews' );
 
 global $option_defaults;
-$option_defaults = array( 'gr_api_key' => '', 'sync_window' => 60, 'sync_review_status' => 'publish', 'service_name' => '' );
+$option_defaults = array( 'gr_api_key' => '', 'sync_window' => 60, 'sync_review_status' => 'draft', 'service_name' => '' );
 
 /**
  * Include dependencies
  */
 require_once( 'includes/mr-functions.php' );
 require_once( 'includes/class-mr-cpts.php' );
-require_once('includes/class-mr-wavereview-pull.php');
+require_once( 'includes/class-mr-wavereview-pull.php' );
 require_once( 'includes/class-mr-ajax.php' );
 
 /**
@@ -287,21 +287,12 @@ class MR_My_Reviews {
 						<tr>
 							<th scope="row"><label for="mr_gr_api_key"><?php _e( 'API Key:', 'my-reviews' ); ?></label></th>
 							<td>
-								<input type="text" id="mr_gr_api_key" name="<?php echo MR_OPTION_NAME; ?>[gr_api_key]" value="<?php echo esc_attr( $option['gr_api_key'] ); ?>" /> 
-								<?php if ( $valid_api_key ) : ?><?php endif; ?>
-								<style type="text/css">
-								.api-image {
-									width: 20px;
-									height: 17px;
-									margin-bottom: -.1em;
-									display: inline-block;
-									background: url(<?php echo plugins_url( 'img/api-icons.png', __FILE__ ); ?>) no-repeat top left;
-									<?php if ( $valid_api_key ) : ?>
-									background-position: 100% 0%;
-									<?php endif; ?>
-								}
-								</style>
-								<div class="api-image"></div>
+								<input type="text" id="mr_gr_api_key" name="<?php echo MR_OPTION_NAME; ?>[gr_api_key]" value="<?php echo esc_attr( $option['gr_api_key'] ); ?>" />
+                                <?php if ( $valid_api_key ) : ?>
+                                    <img src="<?php echo plugins_url( 'img/check-icon.png', __FILE__ ); ?>" />
+                                <?php else : ?>
+                                    <img src="<?php echo plugins_url( 'img/x-icon.png', __FILE__ ); ?>" />
+                                <?php endif; ?>
 							</td>
 						</tr>
 					</tbody>
