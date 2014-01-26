@@ -268,7 +268,7 @@ class MR_CPTS {
 			'show_ui' => true, 
 			'show_in_menu' => true, 
 			'query_var' => true,
-			'rewrite' => array( 'slug' => 'reviews/%mr_review_format%' ),
+			'rewrite' => array( 'slug' => 'review' ),
 			'capability_type' => 'post',
 			'has_archive' => 'reviews',
 			'hierarchical' => false,
