@@ -4,7 +4,7 @@ Plugin Name: My Reviews
 Plugin URI: http://www.wavereview.com
 Description: Create and display reviews in WordPress. Syncs with WaveReview
 Author: Gem
-Version: 1.4
+Version: 1.5
 Author URI: http://www.wavereview.com
 */
 
@@ -240,7 +240,7 @@ class MR_My_Reviews {
 	 * @since 0.1
 	 * @return MR_My_Reviews
 	 */
-	public function init() {
+	public static function init() {
 		if ( ! isset( self::$_instance ) ) {
 
 			self::$_instance = new MR_My_Reviews;

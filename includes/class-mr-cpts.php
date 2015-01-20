@@ -548,7 +548,7 @@ class MR_CPTS {
 	 *
 	 * @since 0.1
 	 */
-	public function init() {
+	public static function init() {
 		if ( ! isset( self::$_instance ) ) {
 
 			self::$_instance = new MR_CPTS;

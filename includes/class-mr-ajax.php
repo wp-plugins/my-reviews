@@ -52,7 +52,7 @@ class MR_AJAX {
 	 * @since 0.2
 	 * @return MR_AJAX
 	 */
-	public function init() {
+	public static function init() {
 		if ( ! isset( self::$_instance ) ) {
 
 			self::$_instance = new MR_AJAX;

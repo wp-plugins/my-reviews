@@ -160,7 +160,7 @@ class MR_WaveReview_Pull {
 	 * @since 0.1
 	 * @return MR_WaveReview_Pull
 	 */
-	public function init() {
+	public static function init() {
 		if ( ! isset( self::$_instance ) ) {
 
 			self::$_instance = new MR_WaveReview_Pull;

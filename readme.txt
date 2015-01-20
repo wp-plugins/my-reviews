@@ -3,8 +3,8 @@ Contributors: gswardman
 Donate link: http://www.wavereview.com
 Tags: reviews, client reviews, product reviews, wavereview, wave review, testimonials
 Requires at least: 3.5
-Tested up to: 3.8
-Stable tag: 1.4
+Tested up to: 4.2
+Stable tag: 1.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
